@@ -1,163 +1,120 @@
-import { useState } from "react";
-import { checkQuestions } from "../api/client";
-
 /**
- * Question Paper Coverage panel.
- *
- * Faculty pastes a draft exam. We POST it (plus the current course's CLOs)
- * to /api/check-questions and render:
- *   - CLO coverage table (which CLOs are well/under/not covered)
- *   - Bloom's distribution bars (visualizes cognitive-demand balance)
- *   - Per-question breakdown (what each question tests)
- *   - Overall verdict (AI's 1-2 sentence summary)
- *
- * Renders nothing intrusive when idle — just a textarea + button. Only
- * populates results after the faculty clicks "Check coverage."
+ * Question paper coverage panel.
+ * Pure display component. Input lives in CurriculumDeskPage.
  */
-export default function QuestionCoveragePanel({ course }) {
-  const [paper, setPaper] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
-
-  const cloReady =
-    course && Array.isArray(course.clos) && course.clos.length > 0;
-
-  async function handleCheck() {
-    setError("");
-    setResult(null);
-
-    if (!cloReady) {
-      setError("Fill in the course CLOs above before checking questions.");
-      return;
-    }
-    if (paper.trim().length < 5) {
-      setError("Paste the question paper first (one question per line).");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const data = await checkQuestions(course, paper);
-      setResult(data);
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
+export default function QuestionCoveragePanel({
+  result,
+  loading,
+  error,
+  paperProvided,
+}) {
   return (
-    <section className="panel question-coverage-panel">
-      <h2>Question paper coverage</h2>
-      <p className="panel-subtitle">
-        Paste a draft exam. We check which CLOs each question tests and
-        whether Bloom's levels are balanced.
-      </p>
+    <section className="panel">
+      <h3>Question paper coverage</h3>
 
-      <textarea
-        className="question-paper-input"
-        placeholder={`Paste your questions here, one per line. e.g.\n1. Define what an IoT sensor is.\n2. Explain how I2C differs from SPI.\n3. Design an air-quality monitoring system.`}
-        rows={8}
-        value={paper}
-        onChange={(e) => setPaper(e.target.value)}
-      />
+      {!paperProvided && !loading && !result && !error && (
+        <p className="panel__status panel__status--idle">
+          Paste a draft exam in the box on the left, then click <strong>Check exam coverage</strong>.
+        </p>
+      )}
 
-      <button
-        className="check-button"
-        onClick={handleCheck}
-        disabled={loading}
-      >
-        {loading ? "Analyzing..." : "Check coverage"}
-      </button>
+      {paperProvided && !loading && !result && !error && (
+        <p className="panel__status panel__status--idle">
+          Click <strong>Check exam coverage</strong> to analyze the pasted paper.
+        </p>
+      )}
 
-      {error && <p className="panel-error">{error}</p>}
+      {loading && (
+        <p className="panel__status">Analyzing question paper…</p>
+      )}
+
+      {error && (
+        <p className="panel__status panel__status--error">{error}</p>
+      )}
 
       {result && (
-        <div className="qcoverage-results">
-          {/* Verdict — the headline finding */}
-          <div className="qcoverage-verdict">
-            <strong>Verdict:</strong> {result.verdict}
-          </div>
+        <div className="qcov">
+          {result.verdict && (
+            <p className="qcov__verdict">{result.verdict}</p>
+          )}
 
-          {/* CLO coverage — which learning outcomes are tested */}
-          <h3>CLO coverage</h3>
-          <table className="qcoverage-table">
-            <thead>
-              <tr>
-                <th>CLO</th>
-                <th>Questions</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.clo_coverage.map((row) => (
-                <tr key={row.clo_id} className={`status-${row.status}`}>
-                  <td>{row.clo_id}</td>
-                  <td>{row.question_count}</td>
-                  <td>{formatStatus(row.status)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <h4 className="qcov__section-head">CLO coverage</h4>
+          <ul className="qcov-list">
+            {result.clo_coverage.map((row) => (
+              <li
+                key={row.clo_id}
+                className={`qcov-row qcov-row--${row.status}`}
+              >
+                <div className="qcov-row__head">
+                  <span className="qcov-row__id">{row.clo_id}</span>
+                  <span className="qcov-row__count">
+                    {row.question_count} question{row.question_count === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <p className="qcov-row__status">{formatStatus(row.status)}</p>
+              </li>
+            ))}
+          </ul>
 
-          {/* Bloom's distribution — cognitive-level balance */}
-          <h3>Bloom's distribution</h3>
-          <div className="bloom-bars">
+          <h4 className="qcov__section-head">Bloom's distribution</h4>
+          <div className="qcov-bloom">
             {[1, 2, 3, 4, 5, 6].map((lvl) => {
-              const count = result.bloom_distribution[lvl] ?? 0;
+              const count = result.bloom_distribution?.[lvl] ?? 0
               const max = Math.max(
-                ...Object.values(result.bloom_distribution),
+                ...Object.values(result.bloom_distribution || {}),
                 1
-              );
-              const widthPct = (count / max) * 100;
+              )
+              const widthPct = (count / max) * 100
               return (
-                <div key={lvl} className="bloom-bar-row">
-                  <span className="bloom-bar-label">
+                <div key={lvl} className="qcov-bloom__row">
+                  <span className="qcov-bloom__label">
                     L{lvl} · {bloomName(lvl)}
                   </span>
-                  <div className="bloom-bar-track">
+                  <div className="qcov-bloom__track">
                     <div
-                      className="bloom-bar-fill"
+                      className="qcov-bloom__fill"
                       style={{ width: `${widthPct}%` }}
                     />
                   </div>
-                  <span className="bloom-bar-count">{count}</span>
+                  <span className="qcov-bloom__count">{count}</span>
                 </div>
-              );
+              )
             })}
           </div>
 
-          {/* Per-question breakdown — audit trail */}
-          <h3>Per-question breakdown</h3>
-          <ol className="qcoverage-questions">
+          <h4 className="qcov__section-head">Per-question breakdown</h4>
+          <ol className="qcov-questions">
             {result.questions.map((q) => (
-              <li key={q.index}>
-                <div className="qtext">{q.text}</div>
-                <div className="qmeta">
-                  Tests: {q.clo_ids.length > 0 ? q.clo_ids.join(", ") : "—"}
+              <li key={q.index} className="qcov-question">
+                <p className="qcov-question__text">{q.text}</p>
+                <p className="qcov-question__meta">
+                  Tests: {q.clo_ids?.length ? q.clo_ids.join(", ") : "— none"}
                   {"  ·  "}
                   Bloom's L{q.bloom_level} ({bloomName(q.bloom_level)})
-                </div>
+                </p>
               </li>
             ))}
           </ol>
+
+          <p className="panel__footnote">
+            AI-assisted analysis — verify mappings before finalizing the paper.
+          </p>
         </div>
       )}
     </section>
-  );
+  )
 }
 
 function formatStatus(status) {
   switch (status) {
     case "well_covered":
-      return "✓ Well covered";
+      return "Well covered"
     case "under_covered":
-      return "⚠ Under covered";
+      return "Under covered — consider adding another question"
     case "not_covered":
-      return "✗ Not covered";
+      return "Not covered — no question tests this CLO"
     default:
-      return status;
+      return status
   }
 }
 
@@ -169,6 +126,6 @@ function bloomName(level) {
     4: "Analyze",
     5: "Evaluate",
     6: "Create",
-  };
-  return names[level] || "Unknown";
+  }
+  return names[level] || "Unknown"
 }
