@@ -9,12 +9,6 @@ const AI_OPTIONS = [
     body: "Analyze a course draft: completeness, overlap with existing courses, and CLO wording against Bloom's levels.",
     cta: "Open Curriculum Desk",
   },
-  {
-    to: "/dashboard/chatbot",
-    title: "General Chatbot",
-    body: "Ask free-form questions — not tied to a specific course draft.",
-    cta: "Open Chatbot",
-  },
 ]
 
 const DashboardPage = () => {
@@ -28,7 +22,7 @@ const DashboardPage = () => {
       <h1 className="mt-1 text-2xl font-bold text-ink">Welcome, {user?.name}</h1>
       <p className="mt-2 max-w-xl text-slate-600">Choose an AI tool to work with.</p>
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+      <div className="mt-8 grid gap-6 sm:grid-cols-1 sm:max-w-lg">
         {AI_OPTIONS.map((option, index) => (
           <motion.div
             key={option.to}
