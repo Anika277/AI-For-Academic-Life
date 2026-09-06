@@ -6,6 +6,8 @@ import OverlapPanel from "../components/OverlapPanel"
 import CLOQualityPanel from "../components/CLOQualityPanel"
 import QuestionCoveragePanel from "../components/QuestionCoveragePanel"
 import AgentChat from "../components/AgentChat"
+import { useToast } from "../context/ToastContext"
+import { useTabTitle } from "../hooks/useTabTitle"
 import {
   checkCompleteness,
   checkOverlap,
@@ -16,6 +18,7 @@ import { emptyCourse, sampleCourse } from "../utils/course"
 
 const CurriculumDeskPage = () => {
   const [course, setCourse] = useState(emptyCourse())
+  const toast = useToast()
 
   // Curriculum review state
   const [completeness, setCompleteness] = useState(null)
@@ -29,13 +32,28 @@ const CurriculumDeskPage = () => {
   const [formError, setFormError] = useState(null)
 
   // Exam paper review — separate workflow, its own state.
-  // Kept independent from the curriculum checks so it doesn't clutter
-  // the primary view or force faculty to run one when they want the other.
   const [showExamReview, setShowExamReview] = useState(false)
   const [questionPaper, setQuestionPaper] = useState("")
   const [questionCoverage, setQuestionCoverage] = useState(null)
   const [loadingQuestions, setLoadingQuestions] = useState(false)
   const [questionsError, setQuestionsError] = useState(null)
+
+  // Feedback state — drives the inline flash chips AND the tab title.
+  // 'idle' | 'analyzing' | 'success' | 'error'
+  const [analyzeFlash, setAnalyzeFlash] = useState("idle")
+  const [examFlash, setExamFlash] = useState("idle")
+
+  // Tab title reflects whichever workflow is currently active.
+  // Analyzing state persists (no auto-revert); success flashes for 5s then reverts.
+  const tabStatus =
+    analyzeFlash === "analyzing"
+      ? "⏳ Analyzing… · Curriculum Desk"
+      : analyzeFlash === "success"
+      ? "✓ Analysis ready · Curriculum Desk"
+      : examFlash === "success"
+      ? "✓ Exam analyzed · Curriculum Desk"
+      : null
+  useTabTitle(tabStatus, analyzeFlash === "analyzing" ? null : 5000)
 
   const handleLoadSample = () => {
     setCourse(sampleCourse())
@@ -45,12 +63,14 @@ const CurriculumDeskPage = () => {
     setCLOQuality(null)
     setQuestionCoverage(null)
     setFormError(null)
+    toast.info("Sample draft loaded", "CSE 4197 · Embedded Systems for IoT")
   }
 
   const handleAnalyze = async () => {
     setFormError(null)
     setOverlapError(null)
     setCLOError(null)
+    setAnalyzeFlash("analyzing")
 
     setLoadingCompleteness(true)
     try {
@@ -59,6 +79,9 @@ const CurriculumDeskPage = () => {
     } catch (err) {
       setFormError(err.message)
       setLoadingCompleteness(false)
+      setAnalyzeFlash("error")
+      toast.error("Analysis failed", err.message)
+      setTimeout(() => setAnalyzeFlash("idle"), 3000)
       return
     }
     setLoadingCompleteness(false)
@@ -82,6 +105,21 @@ const CurriculumDeskPage = () => {
     }
 
     setLoadingAI(false)
+
+    // Summarize what worked and what didn't in a single toast.
+    const anyAIFailed =
+      overlapSettled.status === "rejected" || cloSettled.status === "rejected"
+    if (anyAIFailed) {
+      setAnalyzeFlash("error")
+      toast.error(
+        "Analysis partially failed",
+        "One or more AI checks couldn't complete — see panels for detail."
+      )
+    } else {
+      setAnalyzeFlash("success")
+      toast.success("Analysis complete", "All three checks passed.")
+    }
+    setTimeout(() => setAnalyzeFlash("idle"), 2500)
   }
 
   // Exam paper is its own action so faculty can iterate on it without
@@ -91,26 +129,32 @@ const CurriculumDeskPage = () => {
     setQuestionCoverage(null)
 
     if (!course.clos || course.clos.length === 0) {
-      setQuestionsError(
-        "Fill in the course CLOs above before checking the exam paper."
-      )
+      const msg = "Fill in the course CLOs above before checking the exam paper."
+      setQuestionsError(msg)
+      toast.error("Missing CLOs", msg)
       return
     }
     if (questionPaper.trim().length < 5) {
-      setQuestionsError(
-        "Paste the exam paper below — one question per line."
-      )
+      const msg = "Paste the exam paper below — one question per line."
+      setQuestionsError(msg)
+      toast.error("No exam paper", msg)
       return
     }
 
     setLoadingQuestions(true)
+    setExamFlash("analyzing")
     try {
       const data = await checkQuestions(course, questionPaper)
       setQuestionCoverage(data)
+      setExamFlash("success")
+      toast.success("Exam paper analyzed", "Coverage and Bloom's balance ready.")
     } catch (err) {
       setQuestionsError(err.message)
+      setExamFlash("error")
+      toast.error("Exam check failed", err.message)
     } finally {
       setLoadingQuestions(false)
+      setTimeout(() => setExamFlash("idle"), 2500)
     }
   }
 
@@ -150,6 +194,12 @@ const CurriculumDeskPage = () => {
             >
               {isAnalyzing ? "Analyzing draft…" : "Analyze draft"}
             </button>
+            {analyzeFlash === "success" && (
+              <span className="flash flash--success" aria-hidden="true">✓ Done</span>
+            )}
+            {analyzeFlash === "error" && (
+              <span className="flash flash--error" aria-hidden="true">✗ Failed</span>
+            )}
 
             {formError && <p className="panel__status panel__status--error">{formError}</p>}
 
@@ -166,9 +216,6 @@ const CurriculumDeskPage = () => {
       </div>
 
       {/* ============ Exam paper review — progressive disclosure ============ */}
-      {/* Hidden by default so the primary view stays focused on curriculum
-          design. Faculty opens this once the syllabus is done and they're
-          ready to review the exam paper against it. */}
       <section className="exam-review">
         <div className="exam-review__divider">
           <button
@@ -213,14 +260,22 @@ const CurriculumDeskPage = () => {
                   value={questionPaper}
                   onChange={(e) => setQuestionPaper(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="analyze-button exam-review__submit"
-                  onClick={handleCheckExam}
-                  disabled={loadingQuestions}
-                >
-                  {loadingQuestions ? "Analyzing paper…" : "Check exam coverage"}
-                </button>
+                <div>
+                  <button
+                    type="button"
+                    className="analyze-button exam-review__submit"
+                    onClick={handleCheckExam}
+                    disabled={loadingQuestions}
+                  >
+                    {loadingQuestions ? "Analyzing paper…" : "Check exam coverage"}
+                  </button>
+                  {examFlash === "success" && (
+                    <span className="flash flash--success" aria-hidden="true">✓ Done</span>
+                  )}
+                  {examFlash === "error" && (
+                    <span className="flash flash--error" aria-hidden="true">✗ Failed</span>
+                  )}
+                </div>
               </div>
 
               <div className="exam-review__output">
