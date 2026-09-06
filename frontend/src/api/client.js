@@ -50,6 +50,15 @@ export function checkCLO(course) {
 }
 
 /**
+ * Grok-backed question paper coverage check.
+ * Analyzes a pasted draft exam against the course's CLOs.
+ * Returns { questions, clo_coverage, bloom_distribution, verdict }.
+ */
+export function checkQuestions(course, questionPaper) {
+  return postJSON("/check-questions", { course, questionPaper });
+}
+
+/**
  * Grok-backed chat agent turn.
  * `history` is the full conversation so far, oldest first, each entry
  * `{ role: "user" | "assistant", content: string }`, with the newest

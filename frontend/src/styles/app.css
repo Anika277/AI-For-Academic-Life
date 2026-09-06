@@ -1,425 +1,195 @@
-/* ================= Shell & header ================= */
-.app-shell {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 28px 32px 64px;
+/* ============================================================
+   Exam paper review — progressive disclosure section
+   Hidden by default; opens on click for a focused workspace.
+   ============================================================ */
+
+.exam-review {
+  margin-top: 40px;
 }
 
-.app-header {
+.exam-review__divider {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  padding-bottom: 20px;
-  margin-bottom: 24px;
-  border-bottom: 2px solid var(--ink);
+  justify-content: center;
+  position: relative;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--rule);
 }
 
-.app-header__eyebrow {
-  margin: 0 0 4px;
-  font-size: 13px;
-  letter-spacing: 0.02em;
+.exam-review__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: -44px; /* pull it up so it visually straddles the divider */
+}
+
+.exam-review__toggle:hover {
+  border-color: var(--slate);
   color: var(--slate-dark);
-  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.app-header h1 {
-  font-size: 30px;
-  line-height: 1.15;
+.exam-review__toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--slate);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.app-header__tagline {
-  max-width: 340px;
+.exam-review__toggle-hint {
+  color: var(--ink-soft);
+  font-weight: 400;
+  font-size: 12px;
+  border-left: 1px solid var(--rule-strong);
+  padding-left: 12px;
+  margin-left: 4px;
+}
+
+.exam-review__body {
+  margin-top: 32px;
+  animation: examReviewFadeIn 0.3s ease;
+}
+
+@keyframes examReviewFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.exam-review__intro {
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+
+.exam-review__intro h2 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+.exam-review__intro p {
   margin: 0;
   color: var(--ink-soft);
   font-size: 14px;
-  text-align: right;
+  line-height: 1.5;
 }
 
-/* ================= Two-column layout ================= */
-.app-body {
+.exam-review__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
-.app-body__form {
+.exam-review__input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 18px 20px;
+}
+
+.exam-review__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.exam-review__submit {
+  align-self: flex-start;
+}
+
+.exam-review__output {
   min-width: 0;
 }
 
-.form-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 12px;
+@media (max-width: 960px) {
+  .exam-review__grid {
+    grid-template-columns: 1fr;
+  }
+  .exam-review__toggle {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .exam-review__toggle-hint {
+    display: none;
+  }
 }
 
-.review-sticky {
-  position: sticky;
-  top: 20px;
+/* ============================================================
+   Question paper input — matches ledger-block field styling
+   ============================================================ */
+
+.question-paper-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  resize: vertical;
+  box-sizing: border-box;
+  min-height: 240px;
+}
+
+.question-paper-input:focus {
+  outline: none;
+  border-color: var(--slate);
+  box-shadow: 0 0 0 2px rgba(52, 73, 94, 0.08);
+}
+
+/* ============================================================
+   Question coverage panel — mirrors overlap-panel visual language
+   ============================================================ */
+
+.qcov {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-@media (max-width: 960px) {
-  .app-shell {
-    padding: 20px 18px 48px;
-  }
-  .app-body {
-    grid-template-columns: 1fr;
-  }
-  .review-sticky {
-    position: static;
-  }
-  .app-header__tagline {
-    text-align: left;
-    max-width: none;
-  }
-}
-
-/* ================= Ledger blocks (form sections) ================= */
-.ledger-block {
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 18px 20px;
-  margin-bottom: 20px;
-}
-
-.ledger-block__head {
-  margin-bottom: 14px;
-}
-
-.ledger-block__head h3 {
-  font-size: 18px;
-}
-
-.ledger-block__hint {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-/* ================= Metadata grid ================= */
-.metadata-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.field--wide {
-  grid-column: span 2;
-}
-
-.field--full {
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 640px) {
-  .metadata-grid {
-    grid-template-columns: 1fr;
-  }
-  .field--wide,
-  .field--full {
-    grid-column: 1;
-  }
-}
-
-/* ================= Tables (CLOs, weekly plan) ================= */
-.ledger-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.ledger-table th {
-  text-align: left;
-  font-weight: 500;
-  color: var(--ink-soft);
-  padding: 0 8px 8px;
-  border-bottom: 1px solid var(--rule-strong);
-}
-
-.ledger-table td {
-  padding: 6px 8px;
-  vertical-align: top;
-  border-bottom: 1px solid var(--rule);
-}
-
-.ledger-table input,
-.ledger-table select,
-.ledger-table textarea {
-  width: 100%;
-}
-
-.row-remove {
-  background: none;
-  border: 1px solid var(--rule-strong);
-  color: var(--brick);
-  border-radius: 3px;
-  padding: 5px 8px;
-  font-size: 12px;
-}
-
-.row-remove:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.add-row {
-  margin-top: 12px;
-  background: none;
-  border: 1px dashed var(--rule-strong);
-  color: var(--slate-dark);
-  border-radius: 3px;
-  padding: 7px 12px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.add-row:hover {
-  border-color: var(--slate);
+.qcov__verdict {
+  margin: 0;
+  padding: 12px 14px;
   background: var(--forest-bg);
-}
-
-.clo-tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-}
-
-.clo-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-
-/* ================= Assessment breakdown ================= */
-.assessment-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.assessment-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-@media (max-width: 640px) {
-  .assessment-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.assessment-total {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 8px 12px;
+  border-left: 3px solid var(--slate);
   border-radius: 3px;
   font-size: 13px;
-  width: fit-content;
+  line-height: 1.5;
+  color: var(--ink);
 }
 
-.assessment-total strong {
-  font-size: 16px;
-}
-
-.assessment-total--ok {
-  background: var(--forest-bg);
-  color: var(--forest);
-}
-
-.assessment-total--bad {
-  background: var(--brick-bg);
-  color: var(--brick);
-}
-
-/* ================= Progress tracker ================= */
-.tracker {
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 16px 18px;
-}
-
-.tracker__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 10px;
-}
-
-.tracker__percent {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.tracker__bar {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--rule);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.tracker__bar-fill {
-  height: 100%;
-  background: var(--slate);
-  transition: width 0.4s ease;
-}
-
-.tracker__missing {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 13px;
-  color: var(--brick);
-}
-
-.tracker__missing li {
-  margin-bottom: 3px;
-}
-
-.tracker__complete {
-  margin: 0;
-  font-size: 13px;
-  color: var(--forest);
-}
-
-.tracker__idle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-/* ================= Analyze button ================= */
-.analyze-button {
-  background: var(--slate);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.analyze-button:hover:not(:disabled) {
-  background: var(--slate-dark);
-}
-
-.analyze-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.ghost-button {
-  background: none;
-  border: 1px solid var(--rule-strong);
-  color: var(--ink-soft);
-  border-radius: 3px;
-  padding: 7px 12px;
-  font-size: 13px;
-}
-
-.ghost-button:hover {
-  border-color: var(--slate);
-  color: var(--slate-dark);
-}
-
-/* ================= Result panels ================= */
-.panel {
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 16px 18px;
-}
-
-.panel h3 {
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-.panel__status {
-  margin: 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.panel__status--idle {
-  font-style: italic;
-}
-
-.panel__status--error {
-  color: var(--brick);
-}
-
-.panel__footnote {
-  margin: 10px 0 0;
+.qcov__section-head {
+  margin: 4px 0 8px;
   font-size: 12px;
+  font-weight: 600;
   color: var(--ink-soft);
-  border-top: 1px dashed var(--rule);
-  padding-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* Completeness checklist */
-.checklist {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.checklist__item {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  font-size: 13px;
-}
-
-.checklist__mark {
-  flex-shrink: 0;
-  width: 16px;
-  font-weight: 700;
-}
-
-.checklist__item--pass .checklist__mark {
-  color: var(--forest);
-}
-
-.checklist__item--fail .checklist__mark {
-  color: var(--brick);
-}
-
-.checklist__item--fail {
-  color: var(--brick);
-}
-
-.checklist__detail {
-  color: var(--ink-soft);
-}
-
-/* Overlap panel */
-.overlap-list {
+.qcov-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -428,101 +198,97 @@
   gap: 10px;
 }
 
-.overlap-row {
+.qcov-row {
   border-left: 3px solid var(--rule-strong);
-  padding: 4px 0 4px 10px;
+  padding: 4px 0 4px 12px;
 }
 
-.overlap-row--high {
-  border-left-color: var(--brick);
-}
+.qcov-row--well_covered { border-left-color: var(--forest); }
+.qcov-row--under_covered { border-left-color: var(--amber); }
+.qcov-row--not_covered { border-left-color: var(--brick); }
 
-.overlap-row--medium {
-  border-left-color: var(--amber);
-}
-
-.overlap-row--low {
-  border-left-color: var(--forest);
-}
-
-.overlap-row__head {
+.qcov-row__head {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   font-size: 13px;
+}
+
+.qcov-row__id {
   font-weight: 600;
+  color: var(--ink);
 }
 
-.overlap-row--high .overlap-row__percent {
-  color: var(--brick);
+.qcov-row__count {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
-.overlap-row--medium .overlap-row__percent {
-  color: var(--amber);
-}
-
-.overlap-row--low .overlap-row__percent {
-  color: var(--forest);
-}
-
-.overlap-row__topics {
+.qcov-row__status {
   margin: 3px 0 0;
   font-size: 12px;
   color: var(--ink-soft);
 }
 
-/* CLO quality panel */
-.clo-feedback-list {
-  list-style: none;
+.qcov-row--not_covered .qcov-row__status { color: var(--brick); }
+.qcov-row--under_covered .qcov-row__status { color: var(--amber); }
+
+.qcov-bloom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qcov-bloom__row {
+  display: grid;
+  grid-template-columns: 120px 1fr 32px;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.qcov-bloom__label {
+  color: var(--ink-soft);
+}
+
+.qcov-bloom__track {
+  height: 10px;
+  border-radius: 3px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.qcov-bloom__fill {
+  height: 100%;
+  background: var(--slate);
+  transition: width 0.4s ease;
+}
+
+.qcov-bloom__count {
+  text-align: right;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.qcov-questions {
+  list-style: decimal;
   margin: 0;
-  padding: 0;
+  padding-left: 22px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.clo-feedback {
-  border-left: 3px solid var(--rule-strong);
-  padding: 4px 0 4px 10px;
-}
-
-.clo-feedback--ok {
-  border-left-color: var(--forest);
-}
-
-.clo-feedback--flag {
-  border-left-color: var(--amber);
-}
-
-.clo-feedback__head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
+.qcov-question__text {
+  margin: 0;
   font-size: 13px;
+  color: var(--ink);
+  line-height: 1.4;
 }
 
-.clo-feedback__id {
-  font-weight: 600;
-}
-
-.clo-feedback__bloom {
-  color: var(--ink-soft);
-  font-size: 12px;
-}
-
-.clo-feedback__verdict {
+.qcov-question__meta {
+  margin: 3px 0 0;
   font-size: 12px;
   color: var(--ink-soft);
-}
-
-.clo-feedback--flag .clo-feedback__verdict {
-  color: var(--amber);
-  font-weight: 500;
-}
-
-.clo-feedback__suggestion {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--ink-soft);
-  font-style: italic;
 }
