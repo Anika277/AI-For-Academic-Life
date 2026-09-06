@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import 'dotenv/config';
 
 import completenessRouter from "./routes/completeness.js";
 import overlapRouter from "./routes/overlap.js";
 import cloRouter from "./routes/clo.js";
+import agentRouter from "./routes/agent.js";
 
 dotenv.config();
 
@@ -28,6 +30,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/check-completeness", completenessRouter);
 app.use("/api/check-overlap", overlapRouter);
 app.use("/api/check-clo", cloRouter);
+app.use("/api/agent", agentRouter);
 
 // Catch-all 404 for unmatched API routes
 app.use("/api", (req, res) => {
@@ -44,4 +47,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);
   console.log(`   Health check: http://localhost:${PORT}/api/health`);
+  console.log(`   Agent chat:   http://localhost:${PORT}/api/agent/chat`);
 });

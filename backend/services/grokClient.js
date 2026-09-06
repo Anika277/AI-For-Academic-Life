@@ -12,9 +12,9 @@ if (!process.env.XAI_API_KEY) {
 // xAI's Grok API is OpenAI-compatible: same request/response shape,
 // just a different baseURL and API key. This lets us reuse the
 // battle-tested `openai` SDK instead of hand-rolling HTTP calls.
-export const grok = new OpenAI({
-  apiKey: process.env.XAI_API_KEY,
-  baseURL: "https://api.x.ai/v1",
+export const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,   // use the key from .env
+  baseURL: 'https://api.groq.com/openai/v1',
 });
 
 export const GROK_MODEL = process.env.GROK_MODEL || "grok-4-fast";
