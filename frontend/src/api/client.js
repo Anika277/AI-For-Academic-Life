@@ -1,4 +1,4 @@
-// Thin fetch wrappers around the three backend endpoints.
+// Thin fetch wrappers around the backend endpoints.
 // Requests go through the Vite dev proxy (see vite.config.js), so
 // relative paths work in both dev and a same-origin production build.
 
@@ -47,4 +47,15 @@ export function checkOverlap(course) {
 /** Grok-backed CLO/Bloom's quality review. Returns { feedback: [...] }. */
 export function checkCLO(course) {
   return postJSON("/check-clo", { course });
+}
+
+/**
+ * Grok-backed chat agent turn.
+ * `history` is the full conversation so far, oldest first, each entry
+ * `{ role: "user" | "assistant", content: string }`, with the newest
+ * user message last.
+ * Returns { reply, actions, degraded }.
+ */
+export function sendAgentMessage(course, history) {
+  return postJSON("/agent/chat", { course, history });
 }

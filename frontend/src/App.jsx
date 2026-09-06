@@ -5,6 +5,7 @@ import ProgressTracker from "./components/ProgressTracker";
 import CompletenessPanel from "./components/CompletenessPanel";
 import OverlapPanel from "./components/OverlapPanel";
 import CLOQualityPanel from "./components/CLOQualityPanel";
+import AgentChat from "./components/AgentChat";
 import { checkCompleteness, checkOverlap, checkCLO } from "./api/client";
 import { emptyCourse, sampleCourse } from "./utils/course";
 
@@ -120,6 +121,8 @@ export default function App() {
           </div>
         </aside>
       </div>
+
+      <AgentChat course={course} onChange={setCourse} />
     </div>
   );
 }
