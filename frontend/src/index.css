@@ -3,6 +3,12 @@
    curriculum dossier under review, not a SaaS dashboard. Hairline
    rules and tabular structure stand in for cards/shadows.
    --------------------------------------------------------------- */
+   @import "tailwindcss";
+
+@theme {
+  --color-ink: #1c2430;
+  --color-parchment: #faf7f0;
+}
 :root {
   --paper: #faf8f3;
   --paper-raised: #ffffff;
